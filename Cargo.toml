@@ -1,5 +1,5 @@
 [package]
-name = "message_actix"
+name = "car-booking-api-rust"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.3.1"
+dotenv = "0.15.0"
+env_logger = "0.10.0"
