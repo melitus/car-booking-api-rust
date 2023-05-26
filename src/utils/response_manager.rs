@@ -16,7 +16,7 @@ impl NotFoundMessage {
 pub enum ResponseType<T> {
     Ok(T),
     NotFound(T),
-    Created(T)
+    Created(T),
 }
 
 impl<T: Serialize> ResponseType<T>{
