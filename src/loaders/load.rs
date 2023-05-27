@@ -1,10 +1,13 @@
+#[macro_use]
+extern crate actix_cors;
+extern crate dotenv;
+extern crate env_logger;
+
 use actix_web::{web, App,HttpResponse, middleware, HttpServer};
 use std::{env, io};
 use env_logger::Env;
 use crate::utils::response_manager::*;
-
-extern crate dotenv;
-extern crate env_logger;
+use actix_cors::Cors;
 
 async fn health_check() -> HttpResponse {
     ResponseType::Ok("Welcome to car booking api").get_response_type()
@@ -22,6 +25,16 @@ pub async fn run() -> io::Result<()> {
     let app = || {
         App::new()
         .wrap(middleware::Logger::default())
+        .wrap(
+            Cors::default() // allowed_origin return access-control-allow-origin: * by default
+                .allowed_origin("http://127.0.0.1:3000")
+                .allowed_origin("http://localhost:3000")
+                .send_wildcard()
+                .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+                .allowed_header(http::header::CONTENT_TYPE)
+                .max_age(3600),
+        )
         .route("/health", web::get().to(health_check))
     };
     log::info!("starting HTTP server at http://127.0.0.1:8080");
