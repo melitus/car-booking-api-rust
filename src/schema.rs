@@ -6,6 +6,8 @@ diesel::table! {
         name -> Text,
         price -> Text,
         user_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -14,6 +16,8 @@ diesel::table! {
         id -> Uuid,
         email -> Text,
         password -> Text,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 

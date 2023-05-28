@@ -7,6 +7,7 @@ use std::env;
 use super::error::AppError;
 
 pub type PostgresPool = Pool<ConnectionManager<PgConnection>>;
+pub type DBPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
 /// Get DB Connection pool
 pub fn get_connection_pool() -> PostgresPool {
@@ -14,9 +15,11 @@ pub fn get_connection_pool() -> PostgresPool {
 
     let manager = ConnectionManager::<PgConnection>::new(url);
 
-    r2d2::Pool::builder()
+    let pool r2d2::Pool::builder()
         .build(manager)
         .expect("Error building connection pool")
+
+    pool
 }
 
 pub trait PgConnectionHandler {

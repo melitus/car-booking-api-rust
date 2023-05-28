@@ -1,13 +1,12 @@
 use {
     serde::{ Deserialize, Serialize},
     diesel::prelude::*,
-    diesel::pg::PgConnection,
     diesel::{Insertable, Queryable, RunQueryDsl},
     diesel::result::Error,
     uuid::Uuid,
     chrono::NaiveDateTime,
-
-    crate::error::AppError,
+    crate::database::DBPooledConnection,
+    exceptions::error::ServiceError as ApiErrorResponse,
 }
 
 $[derive(Debug, Serialize, Deserialize)]
@@ -29,22 +28,15 @@ pub struct NewCar {
     pub user_id: String,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Insertable, AsChangeset, Serialize, Deserialize)]
 #[table_name = "cars"]
-pub struct CreateCar {
+pub struct CarDTO {
     pub name: String,
     pub price: String,
     pub user_id: String,
 }
 
-#[derive(AsChangeset, Debug, Deserialize, Clone)]
-#[table_name = "cars"]
-pub struct UpdateCar {
-    pub name: Option<String>,
-    pub price: Option<String>,
-    pub user_id: Option<String>,
-}
-
+#[derive(Deletable, Serialize, Deserialize)]
 pub struct DeleteCar {
     pub id: Uuid,
 }
@@ -60,32 +52,32 @@ impl Car {
  
     }
    
-    pub fn find_all_car(conn: &mut PgConnection) -> Result<Vec<Self>, AppError> {
+    pub fn find_all_car(conn: &DBPooledConnection) -> QueryResult<Vec<Car>> {
         let list = cars::table.load::<Self>(conn)?;
-        Ok(list)
+         list
     }
 
-    pub fn find_by_id(conn: &mut PgConnection, id: Uuid) -> Result<Self, AppError> {
+    pub fn find_by_id(conn:&DBPooledConnection, id: Uuid) -> QueryResult<Car> {
         let user = cars::table.find(id).first(conn)?;
-        Ok(user)
+        user
     }
 
     pub fn create_car(
-        conn: &mut PgConnection,
-        records: Vec<CreateCar>,
-    ) -> Result<Vec<Self>, AppError> {
+        conn: &DBPooledConnection,
+        new_car: Vec<CreateCar>,
+    ) -> Result<Vec<Self>, ApiErrorResponse> {
         let car = diesel::insert_into(cars::table)
-            .values(records)
-            .get_results::<Tag>(conn)?;
+            .values(new_car)
+            .get_results::<Car>(conn)?;
         Ok(car)
     }
 
 
     pub fn update(
-        conn: &mut PgConnection,
+        conn:&DBPooledConnection
         car_id: Uuid,
         changeset: UpdateCar,
-    ) -> Result<Self, AppError> {
+    ) -> Result<Self, ApiErrorResponse> {
         let target = cars::table.filter(cars::id.eq(car_id));
         let car = diesel::update(target)
             .set(changeset)
@@ -93,7 +85,7 @@ impl Car {
         Ok(car)
     }
     
-    pub fn delete(conn: &mut PgConnection, params: &DeleteComment) -> Result<(), AppError> {
+    pub fn delete(conn: &DBPooledConnection, params: &DeleteCar) -> QueryResult<usize> {
         diesel::delete(cars::table)
             .filter(cars::id.eq(params.car_id))
             .execute(conn)?;

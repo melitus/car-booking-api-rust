@@ -21,9 +21,11 @@ pub async fn run() -> io::Result<()> {
     let app_host = env::var("APP_HOST").expect("APP_HOST not found.");
     let app_port = env::var("APP_PORT").expect("APP_PORT not found.");
     let app_url = format!("{}:{}", &app_host, &app_port);
+    let pool = use database::db::get_connection_pool();
 
     let app = || {
         App::new()
+        // .data(pool.clone())
         .wrap(middleware::Logger::default())
         .wrap(
             Cors::default() // allowed_origin return access-control-allow-origin: * by default
