@@ -1,4 +1,4 @@
-use crate::api::*;
+use crate::api::v1::*;
 use actix_web::web;
 
 pub fn config_services(cfg: &mut web::ServiceConfig) {

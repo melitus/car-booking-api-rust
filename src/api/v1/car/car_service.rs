@@ -29,13 +29,21 @@ pub fn find_by_id(id: i32, pool: &web::Data<Pool>) -> Result<Car, ServiceError> 
 }
 
 pub fn insert(new_car: NewCarDAO, pool: &web::Data<Pool>) -> Result<(), ServiceError> {
-    match Car::insert(new_person, &pool.get().unwrap()) {
+    match Car::insert(new_car, &pool.get().unwrap()) {
         Ok(_) => Ok(()),
         Err(_) => Err(ServiceError::new(
             StatusCode::INTERNAL_SERVER_ERROR,
             constants::MESSAGE_CAN_NOT_INSERT_DATA.to_string(),
         )),
     }
+}
+
+pub fn create(conn: &mut PgConnection, record: &CreateCar) -> Result<Self, AppError> {
+    let car = diesel::insert_into(cars::table)
+        .values(record)
+        .get_result::<Car>(conn)?;
+
+    Ok(car)
 }
 
 pub fn update(

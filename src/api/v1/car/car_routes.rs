@@ -16,11 +16,3 @@ pub fn init_car_route() {
         )
 }
 
-
-pub fn init_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(login);
-    cfg.service(register);
-    cfg.service(user_informations);
-    cfg.service(user_informations_get);
-    cfg.service(protected);
-}

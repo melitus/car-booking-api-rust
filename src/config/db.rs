@@ -1,75 +1,55 @@
-#[allow(unused_imports)]
-use diesel::{
-    pg::PgConnection,
-    r2d2::{self, ConnectionManager},
-    sql_query,
-    sqlite::SqliteConnection,
-};
+use actix_web::web::{self};
+use diesel::pg::PgConnection;
+use diesel::r2d2::ConnectionManager;
+use r2d2::{Error, Pool, PooledConnection};
+use std::env;
 
-embed_migrations!();
+use super::error::AppError;
 
-#[cfg(not(test))]
-pub type Connection = PgConnection;
+pub type PostgresPool = Pool<ConnectionManager<PgConnection>>;
 
-#[cfg(test)]
-pub type Connection = SqliteConnection;
+/// Get DB Connection pool
+pub fn get_connection_pool() -> PostgresPool {
+    let url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-pub type Pool = r2d2::Pool<ConnectionManager<Connection>>;
+    let manager = ConnectionManager::<PgConnection>::new(url);
 
-#[cfg(not(test))]
-pub fn migrate_and_config_db(url: &str) -> Pool {
-    info!("Migrating and configuring database...");
-    let manager = ConnectionManager::<Connection>::new(url);
-    let pool = r2d2::Pool::builder()
+    r2d2::Pool::builder()
         .build(manager)
-        .expect("Failed to create pool.");
-    embedded_migrations::run(&pool.get().expect("Failed to migrate."));
-
-    pool
+        .expect("Error building connection pool")
 }
 
-#[cfg(test)]
-pub fn migrate_and_config_db(url: &str) -> Pool {
-    use crate::diesel::RunQueryDsl;
-    info!("Migrating and configuring database...");
-    let manager = ConnectionManager::<Connection>::new(url);
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
+pub trait PgConnectionHandler {
+    /// Run operation (closure) by passing in the mutable ref of an actual connection
+    fn run<F, D>(&mut self, func: F) -> Result<D, AppError>
+    where
+        F: Fn(&mut PgConnection) -> Result<D, AppError>;
+}
 
-    sql_query(r#"DROP TABLE IF EXISTS login_history;"#).execute(&pool.get().unwrap());
-    sql_query(r#"DROP TABLE IF EXISTS users;"#).execute(&pool.get().unwrap());
-    sql_query(r#"DROP TABLE IF EXISTS people;"#).execute(&pool.get().unwrap());
-    sql_query(
-        r#"CREATE TABLE people (
-        id INTEGER PRIMARY KEY NOT NULL,
-        name TEXT NOT NULL,
-        gender BOOLEAN NOT NULL,
-        age INTEGER NOT NULL,
-        address TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        email TEXT NOT NULL
-    );"#,
-    )
-    .execute(&pool.get().unwrap());
-    sql_query(
-        r#"CREATE TABLE users (
-        id INTEGER PRIMARY KEY NOT NULL,
-        username TEXT NOT NULL,
-        email TEXT NOT NULL,
-        password TEXT NOT NULL,
-        login_session TEXT NOT NULL DEFAULT ''
-    );"#,
-    )
-    .execute(&pool.get().unwrap());
-    sql_query(
-        r#"CREATE TABLE login_history (
-        id INTEGER PRIMARY KEY NOT NULL,
-        user_id INTEGER NOT NULL REFERENCES users(id),
-        login_timestamp INTEGER NOT NULL
-    );"#,
-    )
-    .execute(&pool.get().unwrap());
+impl PgConnectionHandler for Result<PooledConnection<ConnectionManager<PgConnection>>, Error> {
+    fn run<F, D>(&mut self, func: F) -> Result<D, AppError>
+    where
+        F: Fn(&mut PgConnection) -> Result<D, AppError>,
+    {
+        match self.as_deref_mut() {
+            Ok(con) => func(con),
+            _ => Err(AppError::ServerError),
+        }
+    }
+}
 
-    pool
+pub trait PooledConnectionHandler {
+    fn run<F, D>(self, func: F) -> Result<D, AppError>
+    where
+        F: Fn(&mut PgConnection) -> Result<D, AppError>;
+}
+
+impl PooledConnectionHandler for web::Data<PostgresPool> {
+    /// Get a pooled connection and run operation (closure) with the connection acquired
+    fn run<F, D>(self, func: F) -> Result<D, AppError>
+    where
+        F: Fn(&mut PgConnection) -> Result<D, AppError>,
+    {
+        self.get().run(func)
+    }
 }

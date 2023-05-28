@@ -1,11 +1,44 @@
-version: '3.1'
+version: '3.7'
 
 services:
-  
+  # car-booking-api-rust:
+  #   build: .
+  #   links:
+  #     - postgres
+  #   environment:
+  #     SERVER.HOST: 0.0.0.0
+  #     SERVER.PORT: 8080
+  #     PG.USER: db_user
+  #     PG.PASSWORD: db_pass
+  #     PG.HOST: postgres
+  #     PG.PORT: 5432
+  #     PG.DBNAME: car_booking_db
+  #     PG.POOL.MAX_SIZE: 30
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: '1G'
+  #         cpus: '2'
+  #   ports:
+  #     - 8080:8080
+
   db:
     image: postgres:14-alpine
     container_name: postgres
+    restart: always
+    volumes:
+      - pg_data:/VAR/LIB/POSTGRESQL/DATA
     environment:
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_pass
+      POSTGRES_DB: car_booking_db
     ports: 
       - 5432:5432
+    deploy:
+      resources:
+        limits:
+          memory: '512M'
+          cpus: '1'
+volumes:
+  pg_data:
+    driver: local

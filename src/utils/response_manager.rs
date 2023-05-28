@@ -50,7 +50,6 @@ impl<T> ResponseBody<T> {
     }
 }
 
-
 #[derive(Serialize)]
 pub struct Page<T> {
     pub message: String,

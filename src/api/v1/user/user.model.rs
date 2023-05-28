@@ -8,6 +8,7 @@ pub struct User {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[table_name = "users"]
 pub struct Login {
     pub email: String,
     pub password: String,
