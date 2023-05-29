@@ -1,12 +1,13 @@
 extern crate dotenv;
 extern crate env_logger;
 
-use actix_web::{web, App,HttpResponse,http, middleware, HttpServer};
+use actix_web::{App,http,web, middleware, HttpServer};
 use std::{env, io};
 use env_logger::Env;
 // use crate::utils::response_manager::*;
 use actix_cors::Cors;
 use crate::database::db::*;
+use crate::config::app::config_services;
 
 // async fn health_check() -> HttpResponse {
 //     // ResponseType::Ok("Welcome to car booking api").get_response_type()
@@ -14,7 +15,7 @@ use crate::database::db::*;
 
 pub async fn run() -> io::Result<()> {
     dotenv::dotenv().expect("Failed to read .env file");
-    env_logger::init_from_env(Env::default().default_filter_or("info"));
+    env_logger::init_from_env(Env::default().default_filter_or("debug"));
 
 
     let app_host: String = env::var("APP_HOST").expect("APP_HOST not found.");
@@ -23,9 +24,9 @@ pub async fn run() -> io::Result<()> {
     let pool = establish_connection();
     
 
-    let app = || {
+    let app = move || {
         App::new()
-        // .data(pool.clone())
+        .app_data(web::Data::new(pool.clone()))
         .wrap(middleware::Logger::default())
         .wrap(
             Cors::default() // allowed_origin return access-control-allow-origin: * by default
@@ -37,7 +38,7 @@ pub async fn run() -> io::Result<()> {
                 .allowed_header(http::header::CONTENT_TYPE)
                 .max_age(3600),
         )
-        // .route("/health", web::get().to(health_check))
+        .configure(config_services)
     };
     log::info!("🚀 Starting HTTP server at http://127.0.0.1:8080");
     HttpServer::new(app)

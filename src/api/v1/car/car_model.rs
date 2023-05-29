@@ -29,7 +29,7 @@ pub struct NewCar {
     pub user_id: String,
 }
 
-#[derive(Insertable, AsChangeset, Serialize, Deserialize)]
+#[derive(Insertable, AsChangeset,Debug, Serialize, Deserialize)]
 #[table_name = "cars"]
 pub struct CarDTO {
     pub name: String,

@@ -6,7 +6,7 @@ pub fn init_car_route() {
         .service(
             web::resource("")
                 .route(web::get().to(find_all_cars))
-                .route(web::post().to(insert)),
+                .route(web::post().to(insert_new_car)),
         )
         .service(
             web::resource("/id/{id}")

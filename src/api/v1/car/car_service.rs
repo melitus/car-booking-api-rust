@@ -27,7 +27,7 @@ pub fn find_by_id(id: Uuid, pool: &web::Data<PostgresPool>) -> Result<Car, ApiEr
     }
 }
 
-pub fn insert(new_car: CarDTO, pool: &web::Data<PostgresPool>) -> Result<(), ApiErrorResponse> {
+pub fn create_new_car(new_car: CarDTO, pool: &web::Data<PostgresPool>) -> Result<(), ApiErrorResponse> {
     match Car::create_car(new_car, &mut pool.get().unwrap()) {
         Ok(_) => Ok(()),
         Err(_) => Err(ApiErrorResponse::new(
