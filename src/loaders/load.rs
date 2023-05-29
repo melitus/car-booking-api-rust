@@ -1,27 +1,27 @@
-#[macro_use]
-extern crate actix_cors;
 extern crate dotenv;
 extern crate env_logger;
 
-use actix_web::{web, App,HttpResponse, middleware, HttpServer};
+use actix_web::{web, App,HttpResponse,http, middleware, HttpServer};
 use std::{env, io};
 use env_logger::Env;
-use crate::utils::response_manager::*;
+// use crate::utils::response_manager::*;
 use actix_cors::Cors;
+use crate::database::db::*;
 
-async fn health_check() -> HttpResponse {
-    ResponseType::Ok("Welcome to car booking api").get_response_type()
-    }
+// async fn health_check() -> HttpResponse {
+//     // ResponseType::Ok("Welcome to car booking api").get_response_type()
+//     }
 
 pub async fn run() -> io::Result<()> {
     dotenv::dotenv().expect("Failed to read .env file");
     env_logger::init_from_env(Env::default().default_filter_or("info"));
 
 
-    let app_host = env::var("APP_HOST").expect("APP_HOST not found.");
-    let app_port = env::var("APP_PORT").expect("APP_PORT not found.");
-    let app_url = format!("{}:{}", &app_host, &app_port);
-    let pool = use database::db::get_connection_pool();
+    let app_host: String = env::var("APP_HOST").expect("APP_HOST not found.");
+    let app_port: String = env::var("APP_PORT").expect("APP_PORT not found.");
+    let app_url: String = format!("{}:{}", &app_host, &app_port);
+    let pool = establish_connection();
+    
 
     let app = || {
         App::new()
@@ -37,9 +37,9 @@ pub async fn run() -> io::Result<()> {
                 .allowed_header(http::header::CONTENT_TYPE)
                 .max_age(3600),
         )
-        .route("/health", web::get().to(health_check))
+        // .route("/health", web::get().to(health_check))
     };
-    log::info!("starting HTTP server at http://127.0.0.1:8080");
+    log::info!("🚀 Starting HTTP server at http://127.0.0.1:8080");
     HttpServer::new(app)
     .bind(&app_url)?
     .run()

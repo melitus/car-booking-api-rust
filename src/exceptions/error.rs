@@ -1,19 +1,20 @@
 use actix_web::{http::StatusCode, HttpResponse};
+use crate::utils::response::*;
+// use serde::{Deserialize, Serialize};
+// #[derive(Debug, Serialize, Deserialize)]
+// pub struct ResponseBody<T> {
+//     pub message: String,
+//     pub data: T,
+// }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ResponseBody<T> {
-    pub message: String,
-    pub data: T,
-}
-
-impl<T> ResponseBody<T> {
-    pub fn new(message: &str, data: T) -> ResponseBody<T> {
-        ResponseBody {
-            message: message.to_string(),
-            data,
-        }
-    }
-}
+// impl<T> ResponseBody<T> {
+//     pub fn new(message: &str, data: T) -> ResponseBody<T> {
+//         ResponseBody {
+//             message: message.to_string(),
+//             data,
+//         }
+//     }
+// }
 
 pub struct ServiceError {
     pub http_status: StatusCode,

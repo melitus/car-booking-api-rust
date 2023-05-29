@@ -56,6 +56,6 @@ impl ServerConfig {
             port,
         }
     }
-
+}
     // to use 
-    let config = config::ServerConfig::from_env();
+    // let config = config::ServerConfig::from_env();

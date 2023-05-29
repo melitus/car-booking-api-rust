@@ -1,6 +1,11 @@
 
 // Register custom mods
 mod loaders;
+mod api;
+mod config;
+mod exceptions;
+mod schema;
+mod database;
 mod utils;
 
 use loaders::load::*;

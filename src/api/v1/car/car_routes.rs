@@ -5,14 +5,14 @@ pub fn init_car_route() {
         web::scope("/cars")
         .service(
             web::resource("")
-                .route(web::get().to(car_controller::index))
-                .route(web::post().to(car_controller::create)),
+                .route(web::get().to(find_all_cars))
+                .route(web::post().to(insert)),
         )
         .service(
             web::resource("/id/{id}")
-                .route(web::get().to(car_controller::find_by_id))
-                .route(web::put().to(car_controller::update))
-                .route(web::delete().to(car_controller::delete)),
-        )
+                .route(web::get().to(find_single_car))
+                .route(web::put().to(update))
+                .route(web::delete().to(delete)),
+        );
 }
 
