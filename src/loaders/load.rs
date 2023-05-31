@@ -7,7 +7,7 @@ use env_logger::Env;
 // use crate::utils::response_manager::*;
 use actix_cors::Cors;
 use crate::database::db::*;
-use crate::config::app::config_services;
+use crate::api::routes::app::config_services;
 
 // async fn health_check() -> HttpResponse {
 //     // ResponseType::Ok("Welcome to car booking api").get_response_type()
