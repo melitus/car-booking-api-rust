@@ -1,9 +1,10 @@
-use crate::database::db::PostgresPool;
-use crate::utils::response::ResponseBody;
-use actix_web::{web, HttpResponse, Result};
-use uuid::Uuid;
-
-use super::{car_model::CarDTO, car_service};
+use {
+    actix_web::{web, HttpResponse, Result},
+    uuid::Uuid,
+    crate::database::db::PostgresPool,
+    crate::utils::response::ResponseBody,
+    super::{car_model::CarDTO, car_service}
+};
 
 pub async fn find_all_cars(pool: web::Data<PostgresPool>) -> Result<HttpResponse> {
     match car_service::find_all_cars(&pool) {

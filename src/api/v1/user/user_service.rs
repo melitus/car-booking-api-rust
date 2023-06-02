@@ -1,10 +1,11 @@
-use actix_web::{http::StatusCode, web};
-use super::user_model::*;
-use uuid::Uuid;
-use crate::{
-    exceptions::error::ServiceError as ApiErrorResponse,
+use {
+    actix_web::{http::StatusCode, web},
+    uuid::Uuid,
+    crate::exceptions::error::ServiceError as ApiErrorResponse,
+    crate::database::db::PostgresPool,
+    super::user_model::*,
+
 };
-use crate::database::db::PostgresPool;
 
 pub fn find_all_users (pool: &web::Data<PostgresPool>) -> Result<Vec<User>, ApiErrorResponse>{
     match User::find_all_user(&mut pool.get().unwrap()) {

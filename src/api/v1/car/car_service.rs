@@ -1,10 +1,11 @@
-use actix_web::{http::StatusCode, web};
-use super::car_model::*;
-use uuid::Uuid;
-use crate::{
-    exceptions::error::ServiceError as ApiErrorResponse,
+use {
+    actix_web::{http::StatusCode, web},
+    uuid::Uuid,
+    crate::exceptions::error::ServiceError as ApiErrorResponse,
+    crate::database::db::PostgresPool,
+    super::car_model::*,
 };
-use crate::database::db::PostgresPool;
+
 
 pub fn find_all_cars (pool: &web::Data<PostgresPool>) -> Result<Vec<Car>, ApiErrorResponse>{
     match Car::find_all_car(&mut pool.get().unwrap()) {

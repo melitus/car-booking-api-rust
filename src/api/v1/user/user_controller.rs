@@ -1,8 +1,10 @@
-use crate::database::db::PostgresPool;
-use crate::utils::response::ResponseBody;
-use actix_web::{web, HttpResponse, Result};
-use uuid::Uuid;
-use super::{user_model::UserDTO, user_service};
+use {
+    uuid::Uuid,
+    actix_web::{web, HttpResponse, Result},
+    crate::database::db::PostgresPool,
+    crate::utils::response::ResponseBody,
+    super::{user_model::UserDTO, user_service}
+};
 
 pub async fn find_all_users(pool: web::Data<PostgresPool>) -> Result<HttpResponse> {
     match user_service::find_all_users(&pool) {

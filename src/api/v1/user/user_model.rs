@@ -1,13 +1,13 @@
 use {
     serde::{ Deserialize, Serialize},
     diesel::prelude::*,
+    diesel::pg::PgConnection,
     diesel::{Insertable, Queryable, QueryDsl, RunQueryDsl},
     uuid::Uuid,
     chrono::NaiveDateTime,
     crate::schema::users::{self, dsl::*},
 
 };
-use diesel::pg::PgConnection;
 
 #[derive(Serialize,Queryable, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]

@@ -1,13 +1,14 @@
 use {
     serde::{ Deserialize, Serialize},
     diesel::prelude::*,
+    diesel::pg::PgConnection,
     diesel::{Insertable, Queryable, RunQueryDsl},
     uuid::Uuid,
     chrono::NaiveDateTime,
     crate::schema::cars::{self, dsl::*},
 
 };
-use diesel::pg::PgConnection;
+
 
 
 #[derive(Debug, Queryable, Serialize, Deserialize)]

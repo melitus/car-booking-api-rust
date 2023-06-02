@@ -1,17 +1,14 @@
 extern crate dotenv;
 extern crate env_logger;
 
-use actix_web::{App,http,web, middleware, HttpServer};
-use std::{env, io};
-use env_logger::Env;
-// use crate::utils::response_manager::*;
-use actix_cors::Cors;
-use crate::database::db::*;
-use crate::api::routes::app::config_services;
-
-// async fn health_check() -> HttpResponse {
-//     // ResponseType::Ok("Welcome to car booking api").get_response_type()
-//     }
+use {
+    actix_web::{App,http,web, middleware, HttpServer},
+    std::{env, io},
+    env_logger::Env,
+    actix_cors::Cors,
+    crate::database::db::*,
+    crate::api::routes::app::config_services,
+};
 
 pub async fn run() -> io::Result<()> {
     dotenv::dotenv().expect("Failed to read .env file");
