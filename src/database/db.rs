@@ -11,7 +11,7 @@ fn init_pool(database_url: &str) -> Result<PostgresPool, PoolError> {
     Pool::builder().build(manager)
 }
 
-pub fn establish_connection( database_url: &String) -> PostgresPool {
+pub fn establish_connection( database_url: String) -> PostgresPool {
     dotenv().ok();
     init_pool(&database_url).expect("Failed to create pool")
 }

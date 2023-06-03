@@ -9,7 +9,7 @@ use {
     crate::schema::users::{self, dsl::*},
 };
 
-#[derive(Serialize,Queryable, Deserialize, Debug)]
+#[derive(Serialize,Queryable,Identifiable, Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct User {
     pub id: Uuid,
@@ -136,8 +136,8 @@ impl User {
 //         .json(json!({"status": "success", "access_token": access_token_details.token, "user": user_response})))
 // }
 
-    pub fn find_user_by_email(un: &str, conn: &mut PgConnection) -> QueryResult<User> {
-        users.filter(email.eq(un)).get_result::<User>(conn)
+    pub fn find_user_by_email(incoming_email: &str, conn: &mut PgConnection) -> QueryResult<User> {
+        users.filter(email.eq(incoming_email)).get_result::<User>(conn)
     }
 
     pub fn update(user_id: Uuid, updated_user: UserDTO, conn:  &mut PgConnection) -> QueryResult<usize> {
