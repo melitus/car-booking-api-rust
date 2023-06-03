@@ -7,6 +7,7 @@ mod exceptions;
 mod schema;
 mod database;
 mod utils;
+mod middleware;
 
 use loaders::load::*;
 

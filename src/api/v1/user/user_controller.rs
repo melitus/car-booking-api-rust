@@ -3,7 +3,9 @@ use {
     actix_web::{web, HttpResponse, Result},
     crate::database::db::PostgresPool,
     crate::utils::response::ResponseBody,
-    super::{user_model::UserDTO, user_service}
+    super::{user_model::UserDTO, user_service},
+    log::{debug, error, info},
+
 };
 
 pub async fn find_all_users(pool: web::Data<PostgresPool>) -> Result<HttpResponse> {
@@ -27,8 +29,7 @@ pub async fn insert_new_user(
     new_user: web::Json<UserDTO>,
     pool: web::Data<PostgresPool>,
 ) -> Result<HttpResponse> {
-    format!("This car is called {}!", new_user.email);
-    // print!("new car {:?}", new_car);
+    info!("This car data: {:?}", new_user);
     match user_service::create_new_user(new_user.0, &pool) {
         Ok(()) => Ok(HttpResponse::Created().json(ResponseBody::new("ok", ""))),
         Err(err) => Ok(err.response()),

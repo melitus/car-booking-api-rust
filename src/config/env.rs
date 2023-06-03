@@ -1,61 +1,37 @@
-use dotenv::dotenv;
-use std::env;
-
-/// Init env variables
-pub fn init_env() {
-    dotenv().ok().expect("Env init error");
+fn get_env_var(var_name: &str) -> String {
+    std::env::var(var_name).unwrap_or_else(|_| panic!("{} must be set", var_name))
 }
 
-/// Determine if runtime environment is dev|prod|etc.
-pub fn is_dev() -> bool {
-    let env = env::var("RUN_ENV").expect("Runtime env not set");
-    env == "dev"
-}
-
-/// Get host port tuple for starting Actix server
-pub fn get_host_port() -> (String, u16) {
-    let host = env::var("HOST").expect("Host not set");
-    let port = env::var("PORT")
-        .expect("Port not set")
-        .parse::<u16>()
-        .unwrap();
-
-    (host, port)
-}
-
-/// Get app name configured
-pub fn get_app_name() -> String {
-    env::var("APP_NAME").unwrap_or("codefee-works-api".into())
-}
-
-pub struct ServerConfig {
-    pub host: String,
-    pub port: i32,
-    pub url: String,
-    pub secret_key: String,
+#[derive(Debug, Clone)]
+pub struct Config {
     pub database_url: String,
+    pub client_origin: String,
+
+    pub access_token_expires_in: String,
+    pub access_token_max_age: i64,
+
+    pub refresh_token_expires_in: String,
+    pub refresh_token_max_age: i64,
 }
 
-impl ServerConfig {
-    pub fn from_env() -> Self {
-        dotenv().ok();
-        let database_url = std::env::var("DATABASE_URL").expect("set DATABASE_URL");
-        let secret_key = std::env::var("SECRET_KEY").expect("set SECRET_KEY");
-        let url = std::env::var("URL").expect("set URL");
-        let host = std::env::var("HOST").unwrap_or("0.0.0.0".to_string());
-        let port = std::env::var("PORT")
-            .unwrap_or("8080".to_string())
-            .parse::<i32>()
-            .unwrap();
+impl Config {
+    pub fn init() -> Config {
+        let database_url = get_env_var("DATABASE_URL");
+        let client_origin = get_env_var("CLIENT_ORIGIN");
 
-        Self {
-            url,
+        let access_token_expires_in = get_env_var("ACCESS_TOKEN_EXPIRED_IN");
+        let access_token_max_age = get_env_var("ACCESS_TOKEN_MAXAGE");
+
+        let refresh_token_expires_in = get_env_var("REFRESH_TOKEN_EXPIRED_IN");
+        let refresh_token_max_age = get_env_var("REFRESH_TOKEN_MAXAGE");
+
+        Config {
             database_url,
-            secret_key,
-            host,
-            port,
+            client_origin,
+            access_token_expires_in,
+            refresh_token_expires_in,
+            access_token_max_age: access_token_max_age.parse::<i64>().unwrap(),
+            refresh_token_max_age: refresh_token_max_age.parse::<i64>().unwrap(),
         }
     }
 }
-    // to use 
-    // let config = config::ServerConfig::from_env();

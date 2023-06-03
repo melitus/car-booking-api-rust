@@ -29,7 +29,7 @@ pub fn find_by_id(id: Uuid, pool: &web::Data<PostgresPool>) -> Result<User, ApiE
 }
 
 pub fn create_new_user(new_user: UserDTO, pool: &web::Data<PostgresPool>) -> Result<(), ApiErrorResponse> {
-    match User::create_user(new_user, &mut pool.get().unwrap()) {
+    match User::signup(new_user, &mut pool.get().unwrap()) {
         Ok(_) => Ok(()),
         Err(_) => Err(ApiErrorResponse::new(
             StatusCode::INTERNAL_SERVER_ERROR,
