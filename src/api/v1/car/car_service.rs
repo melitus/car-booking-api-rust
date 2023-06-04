@@ -22,7 +22,7 @@ pub fn create_new_car(new_car: CarDTO, conn: &mut PgConnection) -> Result<Car, A
      created_car
 }
 
-pub fn update(id: Uuid,updated_car: CarDTO,conn: &mut PgConnection) -> Result<Car, AppError> {
+pub fn update(id: Uuid,updated_car: CarUpdateDTO,conn: &mut PgConnection) -> Result<Car, AppError> {
     let updated_car  = Car::update(id, updated_car,conn);
      updated_car
 }

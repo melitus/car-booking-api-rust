@@ -5,13 +5,13 @@ use {
     actix_web::{App,http,web, middleware, HttpServer},
     std::{env, io},
     env_logger::Env,
-    actix_cors::Cors,
     colored::Colorize,
 
     crate::database::db::*,
     crate::api::routes::app::config_services,
     crate::config::env::Config,
-    crate::middleware::app_state::AppState,
+    crate::middlewares::app_state::AppState,
+    crate::middlewares::cors::cors,
 
 };
 
@@ -36,16 +36,9 @@ pub async fn run() -> io::Result<()> {
         App::new()
         .app_data(app_state.clone())
         .wrap(middleware::Logger::default())
-        .wrap(
-            Cors::default() // allowed_origin return access-control-allow-origin: * by default
-                .allowed_origin(&config.client_origin)
-                // .allowed_origin("http://localhost:3000")
-                .send_wildcard()
-                .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-                .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
-                .allowed_header(http::header::CONTENT_TYPE)
-                .max_age(3600),
-        )
+        .wrap(cors())
+
+        
         .configure(config_services)
     };
     log::info!(

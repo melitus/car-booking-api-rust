@@ -1,9 +1,11 @@
 use {
     actix_web::{web, HttpResponse},
     uuid::Uuid,
-    super::{car_model::CarDTO, car_service},
-    crate::middleware::app_state::AppState,
+    super::{car_model::*, car_service},
+    crate::middlewares::app_state::AppState,
     crate::utils::api::ApiResponse,
+    // crate::middlewares::auth::AuthorizationService,
+
 };
 
 pub async fn find_all_cars(state: web::Data<AppState>) -> ApiResponse {
@@ -30,7 +32,7 @@ pub async fn insert_new_car(
 
 pub async fn update(
     car_id: web::Path<Uuid>,
-    updated_car: web::Json<CarDTO>,
+    updated_car: web::Json<CarUpdateDTO>,
     state: web::Data<AppState>,
 ) -> ApiResponse {
     let conn = &mut state.get_conn()?;

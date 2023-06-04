@@ -29,12 +29,20 @@ pub struct NewCar {
     pub user_id: String,
 }
 
-#[derive(Insertable, AsChangeset,Debug, Serialize, Deserialize)]
+#[derive(Insertable, Debug, Serialize, Deserialize)]
 #[table_name = "cars"]
 pub struct CarDTO {
     pub name: String,
     pub price: String,
     pub user_id: Uuid,
+}
+
+#[derive(AsChangeset,Debug, Serialize, Deserialize)]
+#[table_name = "cars"]
+pub struct CarUpdateDTO {
+    pub name: Option<String>,
+    pub price: Option<String>,
+    pub user_id: Option<Uuid>,
 }
 
 pub struct DeleteCar {
@@ -60,7 +68,7 @@ impl Car {
         Ok(car_created)
     }
 
-    pub fn update(car_id: Uuid, updated_car: CarDTO, conn:  &mut PgConnection) -> Result<Self, AppError>  {
+    pub fn update(car_id: Uuid, updated_car: CarUpdateDTO, conn:  &mut PgConnection) -> Result<Self, AppError>  {
         let updated_car = diesel::update(cars.find(car_id))
             .set(&updated_car)
             .get_result::<Car>(conn)?;

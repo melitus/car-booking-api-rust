@@ -2,7 +2,7 @@ use {
     actix_web::{web, HttpResponse},
     uuid::Uuid,
     super::{user_model::UserDTO, user_service},
-    crate::middleware::app_state::AppState,
+    crate::middlewares::app_state::AppState,
     crate::utils::api::ApiResponse,
 };
 
@@ -25,7 +25,7 @@ pub async fn insert_new_user(
     format!("This car is called {}!", new_car.name);
     let conn = &mut state.get_conn()?;
     let car_created = user_service::create_new_user(new_car.0,conn)?;
-    Ok(HttpResponse::Ok().json(car_created))
+    Ok(HttpResponse::Created().json(car_created))
 }
 
 pub async fn update(
