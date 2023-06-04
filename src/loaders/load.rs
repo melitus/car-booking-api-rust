@@ -22,7 +22,7 @@ pub async fn run() -> io::Result<()> {
     let pool = establish_connection(config.database_url.to_owned());
 
     let app_state = web::Data::new(AppState {
-        db: pool.clone(),
+        pool: pool.clone(),
         env: config.clone(), 
     });
 

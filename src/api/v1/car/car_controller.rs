@@ -1,57 +1,48 @@
 use {
-    actix_web::{web, HttpResponse, Result},
+    actix_web::{web, HttpResponse},
     uuid::Uuid,
-    crate::database::db::PostgresPool,
-    crate::utils::response::ResponseBody,
-    super::{car_model::CarDTO, car_service}
+    super::{car_model::CarDTO, car_service},
+    crate::middleware::app_state::AppState,
+    crate::utils::api::ApiResponse,
 };
 
-pub async fn find_all_cars(pool: web::Data<PostgresPool>) -> Result<HttpResponse> {
-    match car_service::find_all_cars(&pool) {
-        Ok(cars) => Ok(HttpResponse::Ok().json(ResponseBody::new("ok", cars))),
-        Err(err) => Ok(err.response()),
-    }
+pub async fn find_all_cars(state: web::Data<AppState>) -> ApiResponse {
+    let conn = &mut state.get_conn()?;
+    let found_cars = car_service::find_all_cars(conn)?;
+    Ok(HttpResponse::Ok().json(found_cars))
 }
 
-pub async fn find_single_car(
-    car_id: web::Path<Uuid>,
-    pool: web::Data<PostgresPool>,
-) -> Result<HttpResponse> {
-    match car_service::find_by_id(car_id.into_inner(), &pool) {
-        Ok(car) => Ok(HttpResponse::Ok().json(ResponseBody::new("ok", car))),
-        Err(err) => Ok(err.response()),
-    }
+pub async fn find_single_car(car_id: web::Path<Uuid>,state: web::Data<AppState>) -> ApiResponse {
+    let conn = &mut state.get_conn()?;
+    let found_car = car_service::find_by_id(car_id.into_inner(),conn)?;
+    Ok(HttpResponse::Ok().json(found_car))
 }
 
 pub async fn insert_new_car(
     new_car: web::Json<CarDTO>,
-    pool: web::Data<PostgresPool>,
-) -> Result<HttpResponse> {
+    state: web::Data<AppState>,
+) -> ApiResponse {
     format!("This car is called {}!", new_car.name);
-    // print!("new car {:?}", new_car);
-    match car_service::create_new_car(new_car.0, &pool) {
-        Ok(()) => Ok(HttpResponse::Created().json(ResponseBody::new("ok", ""))),
-        Err(err) => Ok(err.response()),
-    }
+    let conn = &mut state.get_conn()?;
+    let car_created = car_service::create_new_car(new_car.0,conn)?;
+    Ok(HttpResponse::Ok().json(car_created))
 }
 
 pub async fn update(
     car_id: web::Path<Uuid>,
     updated_car: web::Json<CarDTO>,
-    pool: web::Data<PostgresPool>,
-) -> Result<HttpResponse> {
-    match car_service::update(car_id.into_inner(), updated_car.0, &pool) {
-        Ok(()) => Ok(HttpResponse::Ok().json(ResponseBody::new("ok", ""))),
-        Err(err) => Ok(err.response()),
-    }
+    state: web::Data<AppState>,
+) -> ApiResponse {
+    let conn = &mut state.get_conn()?;
+    let car_updated = car_service::update(car_id.into_inner(),updated_car.0, conn)?;
+    Ok(HttpResponse::Ok().json(car_updated))
 }
 
 pub async fn delete(
     car_id: web::Path<Uuid>,
-    pool: web::Data<PostgresPool>,
-) -> Result<HttpResponse> {
-    match car_service::delete(car_id.into_inner(), &pool) {
-        Ok(()) => Ok(HttpResponse::Ok().json(ResponseBody::new("ok", ""))),
-        Err(err) => Ok(err.response()),
-    }
+    state: web::Data<AppState>,
+) -> ApiResponse {
+    let conn = &mut state.get_conn()?;
+    let car_deleted = car_service::delete(car_id.into_inner(), conn)?;
+    Ok(HttpResponse::Ok().json(car_deleted))
 }

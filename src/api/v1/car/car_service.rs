@@ -1,75 +1,33 @@
 use {
-    actix_web::{http::StatusCode, web},
     uuid::Uuid,
-    crate::exceptions::error::ServiceError as ApiErrorResponse,
-    crate::database::db::PostgresPool,
+    crate::exceptions::error::AppError,
     super::car_model::*,
+    diesel::pg::PgConnection,
+
 };
 
 
-pub fn find_all_cars (pool: &web::Data<PostgresPool>) -> Result<Vec<Car>, ApiErrorResponse>{
-    match Car::find_all_car(&mut pool.get().unwrap()) {
-        Ok(cars) => Ok(cars),
-        Err(_) => Err(
-            ApiErrorResponse::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-             "Cars not found".to_string(),
-        )),
-    }
+pub fn find_all_cars (conn: &mut PgConnection) -> Result<Vec<Car>, AppError> {
+    let car_list: Result<Vec<Car>, AppError>  = Car::find_all_car(conn);
+    car_list
 }
 
-pub fn find_by_id(id: Uuid, pool: &web::Data<PostgresPool>) -> Result<Car, ApiErrorResponse> {
-    match Car::find_by_id(id, &mut pool.get().unwrap()) {
-        Ok(car) => Ok(car),
-        Err(_) => Err(ApiErrorResponse::new(
-            StatusCode::NOT_FOUND,
-            format!("Car with id {} not found", id),
-        )),
-    }
+pub fn find_by_id(id: Uuid, conn: &mut PgConnection) -> Result<Car, AppError> {
+    let found_car  = Car::find_by_id( conn, id);
+    found_car
 }
 
-pub fn create_new_car(new_car: CarDTO, pool: &web::Data<PostgresPool>) -> Result<(), ApiErrorResponse> {
-    match Car::create_car(new_car, &mut pool.get().unwrap()) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(ApiErrorResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Unable to create a new car".to_string(),
-        )),
-    }
+pub fn create_new_car(new_car: CarDTO, conn: &mut PgConnection) -> Result<Car, AppError> {
+    let created_car  = Car::create_car(conn, &new_car);
+     created_car
 }
 
-pub fn update(
-    id: Uuid,
-    updated_car: CarDTO,
-    pool: &web::Data<PostgresPool>,
-) -> Result<(), ApiErrorResponse> {
-    match Car::find_by_id(id, &mut pool.get().unwrap()) {
-        Ok(_) => match Car::update(id, updated_car, &mut pool.get().unwrap()) {
-            Ok(_) => Ok(()),
-            Err(_) => Err(ApiErrorResponse::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Car could not be updated".to_string(),
-            )),
-        },
-        Err(_) => Err(ApiErrorResponse::new(
-            StatusCode::NOT_FOUND,
-            format!("Car with id {} not found", id),
-        )),
-    }
+pub fn update(id: Uuid,updated_car: CarDTO,conn: &mut PgConnection) -> Result<Car, AppError> {
+    let updated_car  = Car::update(id, updated_car,conn);
+     updated_car
 }
 
-pub fn delete(car_id: Uuid, pool: &web::Data<PostgresPool>) -> Result<(), ApiErrorResponse> {
-    match Car::find_by_id(car_id, &mut pool.get().unwrap()) {
-        Ok(_) => match Car::delete(car_id, &mut pool.get().unwrap()) {
-            Ok(_) => Ok(()),
-            Err(_) => Err(ApiErrorResponse::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Car could not be deleted".to_string(),
-            )),
-        },
-        Err(_) => Err(ApiErrorResponse::new(
-            StatusCode::NOT_FOUND,
-            format!("Car with id {} not found", car_id),
-        )),
-    }
+pub fn delete(car_id: Uuid,conn: &mut PgConnection) -> Result<(), AppError> {
+    let updated_car  = Car::delete(car_id,conn);
+    Ok(())
 }

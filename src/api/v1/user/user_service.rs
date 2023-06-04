@@ -1,75 +1,32 @@
 use {
-    actix_web::{http::StatusCode, web},
     uuid::Uuid,
-    crate::exceptions::error::ServiceError as ApiErrorResponse,
-    crate::database::db::PostgresPool,
+    crate::exceptions::error::AppError,
     super::user_model::*,
+    diesel::pg::PgConnection,
 
 };
 
-pub fn find_all_users (pool: &web::Data<PostgresPool>) -> Result<Vec<User>, ApiErrorResponse>{
-    match User::find_all_user(&mut pool.get().unwrap()) {
-        Ok(users) => Ok(users),
-        Err(_) => Err(
-            ApiErrorResponse::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-             "Users not found".to_string(),
-        )),
-    }
+pub fn find_all_users (conn: &mut PgConnection) -> Result<Vec<User>, AppError> {
+    let user_list: Result<Vec<User>, AppError>  = User::find_all_user(conn);
+    user_list
 }
 
-pub fn find_by_id(id: Uuid, pool: &web::Data<PostgresPool>) -> Result<User, ApiErrorResponse> {
-    match User::find_by_id(id, &mut pool.get().unwrap()) {
-        Ok(user) => Ok(user),
-        Err(_) => Err(ApiErrorResponse::new(
-            StatusCode::NOT_FOUND,
-            format!("User with id {} not found", id),
-        )),
-    }
+pub fn find_by_id(id: Uuid, conn: &mut PgConnection) -> Result<User, AppError> {
+    let found_user  = User::find_by_id( conn, id);
+    found_user
 }
 
-pub fn create_new_user(new_user: UserDTO, pool: &web::Data<PostgresPool>) -> Result<(), ApiErrorResponse> {
-    match User::signup(new_user, &mut pool.get().unwrap()) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(ApiErrorResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Unable to create a new user".to_string(),
-        )),
-    }
+pub fn create_new_user(new_user: UserDTO, conn: &mut PgConnection) -> Result<User, AppError> {
+    let created_User  = User::signup(conn, &new_user);
+    created_User
 }
 
-pub fn update(
-    id: Uuid,
-    updated_user: UserDTO,
-    pool: &web::Data<PostgresPool>,
-) -> Result<(), ApiErrorResponse> {
-    match User::find_by_id(id, &mut pool.get().unwrap()) {
-        Ok(_) => match User::update(id, updated_user, &mut pool.get().unwrap()) {
-            Ok(_) => Ok(()),
-            Err(_) => Err(ApiErrorResponse::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "User could not be updated".to_string(),
-            )),
-        },
-        Err(_) => Err(ApiErrorResponse::new(
-            StatusCode::NOT_FOUND,
-            format!("User with id {} not found", id),
-        )),
-    }
+pub fn update(id: Uuid,updated_user: UserDTO,conn: &mut PgConnection) -> Result<User, AppError> {
+    let updated_user  = User::update(id, updated_user,conn);
+     updated_user
 }
 
-pub fn delete(user_id: Uuid, pool: &web::Data<PostgresPool>) -> Result<(), ApiErrorResponse> {
-    match User::find_by_id(user_id, &mut pool.get().unwrap()) {
-        Ok(_) => match User::delete(user_id, &mut pool.get().unwrap()) {
-            Ok(_) => Ok(()),
-            Err(_) => Err(ApiErrorResponse::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "User could not be deleted".to_string(),
-            )),
-        },
-        Err(_) => Err(ApiErrorResponse::new(
-            StatusCode::NOT_FOUND,
-            format!("User with id {} not found", user_id),
-        )),
-    }
+pub fn delete(user_id: Uuid,conn: &mut PgConnection) -> Result<(), AppError> {
+    let updated_user  = User::delete(user_id,conn);
+    Ok(())
 }

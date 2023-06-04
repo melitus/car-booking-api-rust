@@ -1,57 +1,52 @@
-# ---------------------------------------------------
-# 1 - Build Stage
-#
-# Use official rust image to for application build
-# ---------------------------------------------------
-FROM rust:1.66.1 as build
+# build stage
+FROM rust:slim as build
 
-# Setup working directory
-WORKDIR /usr/src/codefee-works-api
-COPY . .
-COPY .env.docker .env
+# install libpq and create new empty binary project
+RUN apt-get update; \
+    apt-get install --no-install-recommends -y libpq-dev; \
+    rm -rf /var/lib/apt/lists/*; \
+    USER=root cargo new --bin app
+WORKDIR /app
 
-# Install dependency (Required by diesel)
-RUN apt-get update && apt-get install libpq5 -y
+# copy manifests
+COPY ./Cargo.toml ./Cargo.toml
 
-# Build application
-RUN cargo install --path .
+# build this project to cache dependencies
+RUN cargo build --release; \
+    rm src/*.rs
 
-# ---------------------------------------------------
-# 2 - Deploy Stage
-#
-# Use a distroless image for minimal container size
-# - Copy `libpq` dependencies into the image (Required by diesel)
-# - Copy application files into the image
-# ---------------------------------------------------
-FROM gcr.io/distroless/cc-debian11
+# copy project source and necessary files
+COPY ./src ./src
+COPY ./migrations ./migrations
+COPY ./diesel.toml .
 
-# Set the architecture argument (arm64, i.e. aarch64 as default)
-# For amd64, i.e. x86_64, you can append a flag when invoking the build `... --build-arg "ARCH=x86_64"`
-ARG ARCH=aarch64
+# add .env and secret.key for Docker env
+RUN touch .env; \
+    mv src/secret.key.sample src/secret.key
 
-# libpq related (required by diesel)
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libpq.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libgssapi_krb5.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libldap_r-2.4.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libkrb5.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libk5crypto.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libkrb5support.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/liblber-2.4.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libsasl2.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libgnutls.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libp11-kit.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libidn2.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libunistring.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libtasn1.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libnettle.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libhogweed.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libgmp.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /usr/lib/${ARCH}-linux-gnu/libffi.so* /usr/lib/${ARCH}-linux-gnu/
-COPY --from=build /lib/${ARCH}-linux-gnu/libcom_err.so* /lib/${ARCH}-linux-gnu/
-COPY --from=build /lib/${ARCH}-linux-gnu/libkeyutils.so* /lib/${ARCH}-linux-gnu/
+# rebuild app with project source
+RUN rm ./target/release/deps/car-booking-api-rust*; \
+    cargo build --release
 
-# Application files
-COPY --from=build /usr/local/cargo/bin/codefee-works-api /usr/local/bin/codefee-works-api
-COPY --from=build /usr/src/codefee-works-api/.env /.env
+# deploy stage
+FROM debian:buster-slim
 
-CMD ["car-booking-api-rust"]
+# create app directory
+RUN mkdir app
+WORKDIR /app
+
+# install libpq
+RUN apt-get update; \
+    apt-get install --no-install-recommends -y libpq-dev; \
+    rm -rf /var/lib/apt/lists/*
+
+# copy binary and configuration files
+COPY --from=build /app/target/release/car-booking-api-rust .
+COPY --from=build /app/.env .
+COPY --from=build /app/diesel.toml .
+
+# expose port
+EXPOSE 8000
+
+# run the binary
+ENTRYPOINT ["/app/car-booking-api-rust"]

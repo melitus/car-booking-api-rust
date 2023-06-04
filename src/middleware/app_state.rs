@@ -1,10 +1,19 @@
 use crate::config::env::Config;
-use crate::database::db::{PostgresPool};
+use crate::database::db::{PostgresPool, DBPooledConnection};
+use crate::exceptions::error::AppError;
 
 #[derive(Clone)]
 pub struct AppState {
     pub env: Config,
-    pub db: PostgresPool,
+    pub pool: PostgresPool,
+}
+
+impl AppState {
+    pub fn get_conn(&self) -> Result<DBPooledConnection, AppError> {
+        let conn = self.pool.get()?;
+        Ok(conn)
+    }
+
 }
 
 // let state = req

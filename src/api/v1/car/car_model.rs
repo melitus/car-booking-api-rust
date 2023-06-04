@@ -6,6 +6,7 @@ use {
     uuid::Uuid,
     chrono::NaiveDateTime,
     crate::schema::cars::{self, dsl::*},
+    crate::exceptions::error::AppError,
 
 };
 
@@ -41,27 +42,34 @@ pub struct DeleteCar {
 }
 
 impl Car {
-    pub fn find_all_car(conn: &mut PgConnection) -> QueryResult<Vec<Car>> {
-        cars.order(id.asc()).load::<Car>(conn)
+    pub fn find_all_car(conn: &mut PgConnection) -> Result<Vec<Self>, AppError> {
+        let list = cars::table.load::<Self>(conn)?;
+        Ok(list)
     }
 
-    pub fn find_by_id(car_id: Uuid, conn:  &mut PgConnection) -> QueryResult<Car> {
-        cars.find(car_id).get_result::<Car>(conn)
+    pub fn find_by_id(conn: &mut PgConnection, car_id: Uuid) -> Result<Self, AppError> {
+        let car = cars::table.find(car_id).first(conn)?;
+        Ok(car)
     }
 
-    pub fn create_car(new_car: CarDTO, conn:  &mut PgConnection) -> QueryResult<usize> {
-        diesel::insert_into(cars)
-            .values(&new_car)
-            .execute(conn)
+    pub fn create_car(conn: &mut PgConnection, record: &CarDTO) -> Result<Self, AppError> {
+        let car_created = diesel::insert_into(cars::table)
+            .values(record)
+            .get_result::<Car>(conn)?;
+
+        Ok(car_created)
     }
 
-    pub fn update(car_id: Uuid, updated_car: CarDTO, conn:  &mut PgConnection) -> QueryResult<usize> {
-        diesel::update(cars.find(car_id))
+    pub fn update(car_id: Uuid, updated_car: CarDTO, conn:  &mut PgConnection) -> Result<Self, AppError>  {
+        let updated_car = diesel::update(cars.find(car_id))
             .set(&updated_car)
-            .execute(conn)
+            .get_result::<Car>(conn)?;
+        Ok(updated_car)
     }
 
-    pub fn delete(car_id: Uuid, conn:  &mut PgConnection) -> QueryResult<usize> {
-        diesel::delete(cars.find(car_id)).execute(conn)
+    pub fn delete(car_id: Uuid, conn:  &mut PgConnection) -> Result<(), AppError> {
+        diesel::delete(cars.find(car_id)).execute(conn)?;
+    
+        Ok(())
     }
 }
