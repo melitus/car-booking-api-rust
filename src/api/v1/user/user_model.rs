@@ -107,14 +107,14 @@ pub fn signup<'a>( conn: &mut PgConnection, new_user: &UserDTO) -> Result<TokenD
     Ok(token)
 }
 
-pub fn signin(conn: &mut PgConnection,login_info:UserLogin ) -> Result<(User, TokenDetails), AppError> {
+pub fn signin(conn: &mut PgConnection,login_info:UserLogin ) -> Result<TokenDetails, AppError> {
     let user = users::table
         .filter(users::email.eq(login_info.email))
         .limit(1)
         .first::<User>(conn)?;
     verify_password(&login_info.password, user.password.as_bytes());
     let token = user.generate_token()?;
-    Ok((user, token))
+    Ok(token)
 }
 
 

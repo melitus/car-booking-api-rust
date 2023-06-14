@@ -9,6 +9,10 @@ pub fn init_user_routes() -> Scope {
                 .route(web::post().to(user_controller::insert_new_user)),
         )
         .service(
+            web::resource("/login")
+                .route(web::post().to(user_controller::login)),
+        )
+        .service(
             web::resource("/id/{user_id}")
                 .route(web::get().to(user_controller::find_single_user))
                 .route(web::put().to(user_controller::update))
