@@ -11,7 +11,7 @@ use uuid::Error as UuidError;
 #[derive(Error, Debug)]
 pub enum AppError {
     // 401
-    #[error("Unauthorized: {}", _0)]
+    #[error("User not authorized for operation: {}", _0)]
     Unauthorized(JsonValue),
 
     // 403
@@ -29,6 +29,22 @@ pub enum AppError {
     // 500
     #[error("Internal Server Error")]
     InternalServerError,
+    #[error("User already exists")]
+    AlreadyExists(JsonValue),
+    #[error("One-time resource already used")]
+    AlreadyUsed(JsonValue),
+    #[error("Temporary authentication token expired")]
+    TokenExpired(JsonValue),
+    #[error("User awaiting confirmation")]
+    Unconfirmed(JsonValue),
+    #[error("Authentication credentials not provided or invalid")]
+    Unauthenticated(JsonValue),
+    #[error("Error with JWT")]
+    JwtError(JsonValue),
+    #[error("email or password incorrect")]
+    InvalidCredentials(JsonValue),
+    #[error("Configuration error on component")]
+    ConfigurationError(JsonValue),
 }
 
 impl actix_web::error::ResponseError for AppError {
@@ -40,7 +56,15 @@ impl actix_web::error::ResponseError for AppError {
             AppError::UnprocessableEntity(ref msg) => HttpResponse::UnprocessableEntity().json(msg),
             AppError::InternalServerError => {
                 HttpResponse::InternalServerError().json("Internal Server Error")
-            }
+            },
+            AppError::AlreadyUsed(ref msg) => HttpResponse::BadRequest().json(msg),
+            AppError::AlreadyExists(ref msg) => HttpResponse::BadRequest().json(msg),
+            AppError::TokenExpired(ref msg) => HttpResponse::Unauthorized().json(msg),
+            AppError::Unconfirmed(ref msg) => HttpResponse::BadRequest().json(msg),
+            AppError::Unauthenticated(ref msg) => HttpResponse::Unauthorized().json(msg),
+            AppError::JwtError(ref msg) => HttpResponse::Unauthorized().json(msg),
+            AppError::InvalidCredentials(ref msg) => HttpResponse::Unauthorized().json(msg),
+            AppError::ConfigurationError(ref msg) => HttpResponse::InternalServerError().json(msg),
         }
     }
     fn status_code(&self) -> StatusCode {
@@ -50,6 +74,15 @@ impl actix_web::error::ResponseError for AppError {
             AppError::NotFound(_) => StatusCode::NOT_FOUND,
             AppError::UnprocessableEntity(_) => StatusCode::UNPROCESSABLE_ENTITY,
             AppError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::AlreadyExists(_) => StatusCode::BAD_REQUEST,
+            AppError::AlreadyUsed(_) => StatusCode::BAD_REQUEST,
+            AppError::TokenExpired(_) => StatusCode::UNAUTHORIZED,
+            AppError::Unconfirmed(_) => StatusCode::BAD_REQUEST,
+            AppError::Unauthenticated(_) => StatusCode::UNAUTHORIZED,
+            AppError::Unauthorized(_) => StatusCode::FORBIDDEN,
+            AppError::JwtError(_) => StatusCode::UNAUTHORIZED,
+            AppError::InvalidCredentials(_) => StatusCode::UNAUTHORIZED,
+            AppError::ConfigurationError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

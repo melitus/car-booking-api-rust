@@ -2,7 +2,7 @@ use {
     actix_web::{web, HttpResponse},
     uuid::Uuid,
     super::{user_model::UserDTO, user_service},
-    crate::middlewares::app_state::AppState,
+    crate::middlewares::state::AppState,
     crate::utils::api::ApiResponse,
 };
 
@@ -46,3 +46,29 @@ pub async fn delete(
     let car_deleted = user_service::delete(car_id.into_inner(), conn)?;
     Ok(HttpResponse::Ok().json(car_deleted))
 }
+
+// pub async fn login(
+//     user: web::Json<UserAuthRequest>,
+//     database: web::Data<Database>,
+// ) -> HttpResponse {
+//     let user_entry = match database.get(&user.username) {
+//         Some(value) => value,
+//         None => return HttpResponse::NotFound().finish(),
+//     };
+
+//     if user.password != user_entry.password {
+//         return HttpResponse::BadRequest().finish();
+//     }
+
+//     build_jwt_response(user_entry.username, user_entry.role)
+// }
+
+// fn build_jwt_response(username: String, role: UserRole) -> HttpResponse {
+//     let token = match generate_token(username, role, 60 * 60) {
+//         Ok(value) => value,
+//         Err(_) => return HttpResponse::InternalServerError().finish(),
+//     };
+//     let token_response = json!(UserAuthResponse { token });
+
+//     HttpResponse::Ok().json(token_response)
+// }

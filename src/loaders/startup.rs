@@ -10,9 +10,8 @@ use {
     crate::database::db::*,
     crate::api::routes::app::config_services,
     crate::config::env::Config,
-    crate::middlewares::app_state::AppState,
+    crate::middlewares::state::AppState,
     crate::middlewares::cors::cors,
-
 };
 
 pub async fn run() -> io::Result<()> {
@@ -37,8 +36,8 @@ pub async fn run() -> io::Result<()> {
         .app_data(app_state.clone())
         .wrap(middleware::Logger::default())
         .wrap(cors())
-
-        
+        // limit the maximum amount of data that server will accept
+        .app_data(web::JsonConfig::default().limit(4096))
         .configure(config_services)
     };
     log::info!(

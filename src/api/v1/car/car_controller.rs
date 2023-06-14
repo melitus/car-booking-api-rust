@@ -2,7 +2,7 @@ use {
     actix_web::{web, HttpResponse},
     uuid::Uuid,
     super::{car_model::*, car_service},
-    crate::middlewares::app_state::AppState,
+    crate::middlewares::state::AppState,
     crate::utils::api::ApiResponse,
     // crate::middlewares::auth::AuthorizationService,
 

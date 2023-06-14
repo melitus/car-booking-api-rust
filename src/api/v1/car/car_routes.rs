@@ -5,6 +5,7 @@ pub fn init_car_routes() -> Scope {
     web::scope("/cars")
         .service(
             web::resource("")
+                // .wrap(auth::middleware::AuthCheckService::require_auth())
                 .route(web::get().to(car_controller::find_all_cars))
                 .route(web::post().to(car_controller::insert_new_car)),
         )

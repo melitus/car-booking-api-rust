@@ -1,11 +1,14 @@
 use crate::config::env::Config;
 use crate::database::db::{PostgresPool, DBPooledConnection};
 use crate::exceptions::error::AppError;
+// use slog::{ Logger};
 
 #[derive(Clone)]
 pub struct AppState {
     pub env: Config,
     pub pool: PostgresPool,
+    // pub logger: Logger,
+
 }
 
 impl AppState {

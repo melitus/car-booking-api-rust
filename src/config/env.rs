@@ -10,7 +10,7 @@ pub struct Config {
     pub access_token_expires_in: String,
     pub access_token_max_age: i64,
     // pub hash_algo: String,
-    pub hash_secret_key: String,
+    pub jwt_secret_key: String,
     // pub jwt_secret_key: String,
     pub refresh_token_expires_in: String,
     pub refresh_token_max_age: i64,
@@ -26,7 +26,7 @@ impl Config {
 
         let refresh_token_expires_in = get_env_var("REFRESH_TOKEN_EXPIRED_IN");
         let refresh_token_max_age = get_env_var("REFRESH_TOKEN_MAXAGE");
-        let hash_secret_key = get_env_var("REFRESH_TOKEN_MAXAGE");
+        let jwt_secret_key = get_env_var("REFRESH_TOKEN_MAXAGE");
 
         Config {
             database_url,
@@ -35,7 +35,7 @@ impl Config {
             refresh_token_expires_in,
             access_token_max_age: access_token_max_age.parse::<i64>().unwrap(),
             refresh_token_max_age: refresh_token_max_age.parse::<i64>().unwrap(),
-            hash_secret_key
+            jwt_secret_key
         }
     }
 }

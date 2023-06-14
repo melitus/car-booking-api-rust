@@ -1,43 +1,71 @@
-use jsonwebtoken::{encode, Header, EncodingKey};
-use crate::config::Config;
-use jsonwebtoken::{decode, Validation, DecodingKey};
+use chrono::{Duration, Utc};
+use jsonwebtoken::{errors::Error,decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Claims {
-    pub exp: usize,
+use crate::api::v1::user;
+
+use super::claims::{Claims, TokenDetails};
+use uuid::Uuid;
+
+const JWT_SECRET: &[u8] = b"JWT_TOKEN_SECRET";
+static ONE_HOUR: i64 = 60 * 60; // in seconds
+const AES_KEY: &str = "e3Ui2PBkyFl5vUaO";
+const ISSUER: &'static str = "http://librevpn.net";
+
+pub fn generate_token(user_id: &Uuid, email: &String) -> Result<TokenDetails, Error> {
+    let create_time = Utc::now();
+    let expire_time = Utc::now() + Duration::hours(ONE_HOUR);
+    // let exp = (now + chrono::Duration::hours(ONE_HOUR)).timestamp();
+
+    let jti = uuid::Uuid::new_v4();
+    let mut scopes = vec![String::from("ROLE_MEMBER")];
+    let user_type = 10;
+    if user_type == 10 {
+        scopes.push(String::from("ROLE_ADMIN"));
+    }
+
+    let claims = Claims {
+        sub: *user_id,
+        jti: jti.to_string(),
+        email: email.clone(),       
+        iat: create_time.timestamp(),
+        nbf: create_time.timestamp(),
+        exp: expire_time.timestamp(),
+        iss: ISSUER.to_string(),
+        scopes: scopes.clone()
+    };
+
+    let header = Header::new(Algorithm::HS512);
+    let token = encode(&header,&claims,&EncodingKey::from_secret(JWT_SECRET))?;
+    let token_details = TokenDetails {
+        user_id: user_id.to_string(),
+        token_uuid: jti,
+        expires_in: expire_time.timestamp(),
+        token,
+        scopes,
+    };
+
+    Ok(token_details)
 }
 
-/**
-    #[derive(Debug, Serialize, Deserialize)]
-    struct Claims {
-        aud: String,         // Optional. Audience
-        exp: usize,          // Required (validate_exp defaults to true in validation). Expiration time (as UTC timestamp)
-        iat: usize,          // Optional. Issued at (as UTC timestamp)
-        iss: String,         // Optional. Issuer
-        nbf: usize,          // Optional. Not Before (as UTC timestamp)
-        sub: String,         // Optional. Subject (whom token refers to)
-    }
- */
+// this is decode token
+pub fn validate_token(token: &str) -> Result<TokenDetails, Error> {
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.validate_exp = false;
+    let decoded = decode::<Claims>(&token, &DecodingKey::from_secret(JWT_SECRET), &validation)?;
+    let user_id =decoded.claims.sub;
 
-pub fn jwt_factory(claims: Claims) -> String {
-    let config = Config::from_env().expect("please set some env vars");
-    let token = encode(&Header::default(), &claims, &EncodingKey::from_secret(config.jwt_secret_key.as_bytes()));
-    match token {
-        Ok(jwt) => jwt,
-        _ => String::from("Could not create token")
-    }
-}
+    // let user_id = aes::decrypt(&decoded.claims.sub, AES_KEY);
+    let token_uuid = Uuid::parse_str(decoded.claims.jti.as_str()).unwrap();
+    // let user_id = Uuid::parse_str(decoded.claims.jti.as_str());
 
-pub fn validate_token(token: &str) -> bool {
-    let config = Config::from_env()
-        .expect("Must set env vars in config file");
-    
-    let validation = Validation { ..Validation::default() };
-    let decoding_key = &DecodingKey::from_secret(config.jwt_secret_key.as_bytes());
-    let decoded_access_token = decode::<Claims>(&token, decoding_key, &validation);
+    let token_expiry = decoded.claims.exp;
+    let scopes = decoded.claims.scopes;
 
-    match decoded_access_token {
-        Ok(_) => true,
-        Err(_) => false
-    }
+    Ok(TokenDetails {
+        token: token.to_string(),
+        token_uuid,
+        user_id: user_id.to_string(),
+        expires_in: token_expiry,
+        scopes,
+    })
 }

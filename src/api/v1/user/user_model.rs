@@ -7,6 +7,10 @@ use {
     serde::{Deserialize, Serialize},
     uuid::Uuid,
     crate::exceptions::error::AppError,
+    crate::auth::hash::{verify_password, hash_password},
+    crate::auth::jwt::{generate_token},
+    crate::auth::claims::{ TokenDetails},
+
 };
 
 #[derive(Serialize, Queryable, Identifiable, Deserialize, Debug)]
@@ -31,7 +35,7 @@ pub struct UserDTO {
 
 #[derive(Debug, Deserialize)]
 pub struct UserLogin {
-    pub name: String,
+    pub email: String,
     pub password: String,
 }
 
@@ -43,7 +47,19 @@ pub struct UserLoggedIn {
     pub refresh_token: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LoginResponse {
+    pub message: String,
+    pub status: bool,
+    pub token: String,
+}
+
 impl User {
+
+    pub fn generate_token(&self) -> Result<TokenDetails, AppError> {
+        let token = generate_token(&self.id, &self.email)?;
+        Ok(token)
+    }
 
     pub fn find_all_user(conn: &mut PgConnection) -> Result<Vec<Self>, AppError> {
         let list = users::table.load::<Self>(conn)?;
@@ -53,14 +69,6 @@ impl User {
     pub fn find_by_id(conn: &mut PgConnection, car_id: Uuid) -> Result<Self, AppError> {
         let car = users::table.find(car_id).first(conn)?;
         Ok(car)
-    }
-
-    pub fn signup(conn: &mut PgConnection, record: &UserDTO) -> Result<Self, AppError> {
-        let car_created = diesel::insert_into(users::table)
-            .values(record)
-            .get_result::<User>(conn)?;
-
-        Ok(car_created)
     }
 
     pub fn update(car_id: Uuid, updated_car: UserDTO, conn:  &mut PgConnection) -> Result<Self, AppError>  {
@@ -75,4 +83,39 @@ impl User {
     
         Ok(())
     }
+
+    pub fn find_user_by_email(conn: &mut PgConnection, user_email: String) -> Result<Self, AppError> {
+        let result = users.filter(email.eq(user_email)).first::<User>(conn)?;
+        Ok(result)
+    }
+
+pub fn signup<'a>( conn: &mut PgConnection, new_user: &UserDTO) -> Result<TokenDetails, AppError> {
+    use diesel::prelude::*;
+    let hashed_password = hash_password(new_user.password.as_bytes());
+
+    let record = UserDTO {
+        name: new_user.name.to_string(),
+        email: new_user.email.to_string(),
+        password: hashed_password,
+    };
+
+    let user = diesel::insert_into(users::table)
+        .values(&record)
+        .get_result::<User>(conn)?;
+
+    let token = user.generate_token()?;
+    Ok(token)
+}
+
+pub fn signin(conn: &mut PgConnection,login_info:UserLogin ) -> Result<(User, TokenDetails), AppError> {
+    let user = users::table
+        .filter(users::email.eq(login_info.email))
+        .limit(1)
+        .first::<User>(conn)?;
+    verify_password(&login_info.password, user.password.as_bytes());
+    let token = user.generate_token()?;
+    Ok((user, token))
+}
+
+
 }

@@ -8,8 +8,8 @@ mod schema;
 mod database;
 mod utils;
 mod middlewares;
-
-use loaders::load::*;
+mod auth;
+use loaders::startup::*;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

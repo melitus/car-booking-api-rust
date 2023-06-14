@@ -3,6 +3,7 @@ use {
     crate::exceptions::error::AppError,
     super::user_model::*,
     diesel::pg::PgConnection,
+    crate::auth::claims::{ TokenDetails},
 
 };
 
@@ -16,9 +17,9 @@ pub fn find_by_id(id: Uuid, conn: &mut PgConnection) -> Result<User, AppError> {
     found_user
 }
 
-pub fn create_new_user(new_user: UserDTO, conn: &mut PgConnection) -> Result<User, AppError> {
-    let created_User  = User::signup(conn, &new_user);
-    created_User
+pub fn create_new_user(new_user: UserDTO, conn: &mut PgConnection) -> Result<TokenDetails, AppError> {
+    let created_user  = User::signup(conn, &new_user);
+    created_user
 }
 
 pub fn update(id: Uuid,updated_user: UserDTO,conn: &mut PgConnection) -> Result<User, AppError> {
