@@ -1,7 +1,7 @@
 use crate::api::v1::car::car_controller;
 use actix_web::{web, Scope};
 
-pub fn init_car_routes() -> Scope {
+pub fn register_car_routes() -> Scope {
     web::scope("/cars")
         .service(
             web::resource("")

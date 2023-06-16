@@ -1,7 +1,7 @@
 use crate::api::v1::user::user_controller;
 use actix_web::{web, Scope};
 
-pub fn init_user_routes() -> Scope {
+pub fn register_user_routes() -> Scope {
     web::scope("/users")
         .service(
             web::resource("")
