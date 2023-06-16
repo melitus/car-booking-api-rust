@@ -31,7 +31,7 @@ pub async fn insert_new_user(
 }
 
 pub async fn login(login_Info: web::Json<UserLogin>,state: web::Data<AppState>) -> ApiResponse {
-    format!("This car is called {}!", login_Info.email);
+    println!("This car is called {}!", login_Info.email);
     let conn = &mut state.get_conn()?;
     let user_created = user_service::login(login_Info.0,conn)?;
     Ok(HttpResponse::Created().json(user_created))

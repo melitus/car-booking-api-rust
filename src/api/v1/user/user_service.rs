@@ -24,7 +24,7 @@ pub fn create_new_user(new_user: UserDTO, conn: &mut PgConnection) -> Result<Tok
 
 pub fn login(login_info: UserLogin, conn: &mut PgConnection) -> Result<TokenDetails, AppError> {
     
-    User::signin(conn, login_info)
+    User::login(conn, login_info)
 }
 
 pub fn update(id: Uuid,updated_user: UserDTO,conn: &mut PgConnection) -> Result<User, AppError> {

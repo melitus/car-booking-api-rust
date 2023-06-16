@@ -143,38 +143,27 @@ impl User {
         Ok(token)
     }
 
-    pub fn signin(
-        conn: &mut PgConnection,
-        login_info: UserLogin,
-    ) -> Result<TokenDetails, AppError> {
-        let user = users::table
-            .filter(users::email.eq(login_info.email))
-            .limit(1)
-            .first::<User>(conn)?;
-        verify_password(&login_info.password, user.password.as_bytes());
-        let token: TokenDetails = user.generate_token()?;
-        Ok(token)
-    }
-
     pub fn login(conn: &mut PgConnection, login_info: UserLogin) -> Result<TokenDetails, AppError> {
         let user_to_verify = users::table
             .filter(users::email.eq(login_info.email))
             .limit(1)
             .first::<User>(conn)?;
-        let is_valid = verify_password(&login_info.password, user_to_verify.password.as_bytes()).unwrap();
+        let is_valid = verify_password(&user_to_verify.password,&login_info.password.as_bytes() );
         println!("the verified valid value {:?}", is_valid);
-    //    let res =  match is_valid {
-    //          Ok(true) => true,
-    //          Ok(false) => false,
-    //          Err(e) => return Err(AppError::Unauthorized("Incorrect password".into()))
-    //         };
-        if is_valid {
+       let res =  match is_valid {
+             Ok(true) => true,
+             Ok(false) => false,
+             Err(e) => return Err(AppError::Unauthorized("Incorrect password".into()))
+            };
+            println!("the verified value {:?}", res);
+
+        if res {
             println!("calling {}", user_to_verify.email);
             let token: TokenDetails = user_to_verify.generate_token()?;
             Ok(token)
 
         } else {
-            Err(AppError::Unauthorized("Incorrect password".into()))
+            Err(AppError::Unauthorized("Incorrect username or password".into()))
         }
             
         }
