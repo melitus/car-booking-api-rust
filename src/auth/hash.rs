@@ -14,7 +14,7 @@ pub fn hash_password(password: &[u8]) -> String {
 }
 
 pub fn verify_password(hash: &str, password: &[u8]) -> Result<bool, Error> {
-    println!("Verifying password ",);
+    println!("Verifying password {:?} and hash {:?}", password, hash);
     let parsed_hash = PasswordHash::new(hash)?;
     Ok(Argon2::default().verify_password(password, &parsed_hash).is_ok())
 }

@@ -16,7 +16,7 @@ use {
 
 pub async fn run() -> io::Result<()> {
     dotenv::dotenv().expect("Failed to read .env file");
-    env_logger::init_from_env(Env::default().default_filter_or("debug"));
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
     let config = Config::init();
     let pool = establish_connection(config.database_url.to_owned());
 

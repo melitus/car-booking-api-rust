@@ -161,8 +161,14 @@ impl User {
             .filter(users::email.eq(login_info.email))
             .limit(1)
             .first::<User>(conn)?;
-        let is_valid = verify_password(&login_info.password, &user_to_verify.password.as_bytes());
-        if is_valid == Ok(true) {
+        let is_valid = verify_password(&login_info.password, user_to_verify.password.as_bytes()).unwrap();
+        println!("the verified valid value {:?}", is_valid);
+    //    let res =  match is_valid {
+    //          Ok(true) => true,
+    //          Ok(false) => false,
+    //          Err(e) => return Err(AppError::Unauthorized("Incorrect password".into()))
+    //         };
+        if is_valid {
             println!("calling {}", user_to_verify.email);
             let token: TokenDetails = user_to_verify.generate_token()?;
             Ok(token)
