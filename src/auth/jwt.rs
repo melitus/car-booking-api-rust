@@ -54,14 +54,5 @@ pub fn validate_token(token: &str) -> jsonwebtoken::errors::Result<TokenData<Cla
     let mut validation = Validation::new(Algorithm::HS512);
     validation.validate_exp = false;
     let decoded = decode::<Claims>(token, &DecodingKey::from_secret(JWT_SECRET), &validation)?;
-    // let user_id =decoded.claims.sub;
-
-    // // let user_id = aes::decrypt(&decoded.claims.sub, AES_KEY);
-    // let token_uuid = Uuid::parse_str(decoded.claims.jti.as_str()).unwrap();
-    // // let user_id = Uuid::parse_str(decoded.claims.jti.as_str());
-
-    // let token_expiry = decoded.claims.exp;
-    // let scopes = decoded.claims.scopes;
-
     Ok(decoded)
 }
