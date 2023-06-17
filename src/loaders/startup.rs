@@ -12,6 +12,8 @@ use {
     crate::config::env::Config,
     crate::middlewares::state::AppState,
     crate::middlewares::cors::cors,
+    crate::middlewares::auth::*,
+
 };
 
 pub async fn run() -> io::Result<()> {
@@ -34,6 +36,7 @@ pub async fn run() -> io::Result<()> {
     let app = move || {
         App::new()
         .app_data(app_state.clone())
+        .wrap(Authentication)
         .wrap(middleware::Logger::default())
         .wrap(cors())
         // limit the maximum amount of data that server will accept

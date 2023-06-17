@@ -1,5 +1,5 @@
 use chrono::{Duration, Utc};
-use jsonwebtoken::{errors::Error,decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{errors::Error,decode, encode, Algorithm, DecodingKey, TokenData,EncodingKey, Header, Validation};
 
 use crate::api::v1::user;
 
@@ -48,24 +48,20 @@ pub fn generate_token(user_id: &Uuid, email: &String) -> Result<TokenDetails, Er
 }
 
 // this is decode token
-pub fn validate_token(token: &str) -> Result<TokenDetails, Error> {
-    let mut validation = Validation::new(Algorithm::HS256);
+
+pub fn validate_token(token: &str) -> jsonwebtoken::errors::Result<TokenData<Claims>>{
+    println!("Received token from authentication server: {:?}", token);
+    let mut validation = Validation::new(Algorithm::HS512);
     validation.validate_exp = false;
-    let decoded = decode::<Claims>(&token, &DecodingKey::from_secret(JWT_SECRET), &validation)?;
-    let user_id =decoded.claims.sub;
+    let decoded = decode::<Claims>(token, &DecodingKey::from_secret(JWT_SECRET), &validation)?;
+    // let user_id =decoded.claims.sub;
 
-    // let user_id = aes::decrypt(&decoded.claims.sub, AES_KEY);
-    let token_uuid = Uuid::parse_str(decoded.claims.jti.as_str()).unwrap();
-    // let user_id = Uuid::parse_str(decoded.claims.jti.as_str());
+    // // let user_id = aes::decrypt(&decoded.claims.sub, AES_KEY);
+    // let token_uuid = Uuid::parse_str(decoded.claims.jti.as_str()).unwrap();
+    // // let user_id = Uuid::parse_str(decoded.claims.jti.as_str());
 
-    let token_expiry = decoded.claims.exp;
-    let scopes = decoded.claims.scopes;
+    // let token_expiry = decoded.claims.exp;
+    // let scopes = decoded.claims.scopes;
 
-    Ok(TokenDetails {
-        token: token.to_string(),
-        token_uuid,
-        user_id: user_id.to_string(),
-        expires_in: token_expiry,
-        scopes,
-    })
+    Ok(decoded)
 }
