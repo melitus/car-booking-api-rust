@@ -45,6 +45,6 @@ pub async fn delete(
     state: web::Data<AppState>,
 ) -> ApiResponse {
     let conn = &mut state.get_conn()?;
-    let car_deleted = car_service::delete(car_id.into_inner(), conn)?;
-    Ok(HttpResponse::Ok().json(car_deleted))
+    car_service::delete(car_id.into_inner(), conn)?;
+    Ok(HttpResponse::Ok().json(()))
 }

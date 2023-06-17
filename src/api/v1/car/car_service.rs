@@ -13,21 +13,21 @@ pub fn find_all_cars (conn: &mut PgConnection) -> Result<Vec<Car>, AppError> {
 }
 
 pub fn find_by_id(id: Uuid, conn: &mut PgConnection) -> Result<Car, AppError> {
-    let found_car  = Car::find_by_id( conn, id);
-    found_car
+    
+    Car::find_by_id( conn, id)
 }
 
 pub fn create_new_car(new_car: CarDTO, conn: &mut PgConnection) -> Result<Car, AppError> {
-    let created_car  = Car::create_car(conn, &new_car);
-     created_car
+    
+     Car::create_car(conn, &new_car)
 }
 
 pub fn update(id: Uuid,updated_car: CarUpdateDTO,conn: &mut PgConnection) -> Result<Car, AppError> {
-    let updated_car  = Car::update(id, updated_car,conn);
-     updated_car
+    
+     Car::update(id, updated_car,conn)
 }
 
 pub fn delete(car_id: Uuid,conn: &mut PgConnection) -> Result<(), AppError> {
-    let updated_car  = Car::delete(car_id,conn);
+    Car::delete(car_id,conn);
     Ok(())
 }
